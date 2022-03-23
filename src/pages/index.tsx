@@ -20,6 +20,11 @@ const Home: NextPage = () => {
             <h2>Next Route &rarr;</h2>
           </a>
         </Link>
+        <Link href='/products' passHref>
+          <a className={styles.card}>
+            <h2>Next Filter &rarr;</h2>
+          </a>
+        </Link>
       </div>
     </>
   )

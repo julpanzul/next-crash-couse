@@ -1,26 +1,49 @@
+import { GetStaticPaths, GetStaticProps } from 'next'
 import React from 'react'
-import {User} from '../../interfaces'
+import { User } from '../../interfaces'
 
-function UserId({user}: {user: User}) {
+function UserId({ data, errors }: { data?: User, errors?: string }) {
+  if(errors) {
+    return (
+      <p>
+        <span style={{ color: 'red' }}>Error:</span> {errors}
+      </p>
+    )
+  }
   return (
-    <div>
-      <ul key={user.id}>
-        <li>Name: {user.name}</li>
-        <li>Username: {user.username}</li>
-        <li>Email: {user.email}</li>
-        <li>Website: {user.website}</li>
-      </ul>
-    </div>
+    <>
+      {data && 
+        <>
+          <h3>{data.name}</h3>
+          <p>{data.email}</p>
+        </>
+      }
+    </>
   )
 }
 
 export default UserId
 
-UserId.getInitialProps = async (ctx: any) => {
-  const {id} = ctx.query
-  const url = `https://jsonplaceholder.typicode.com/users?${id}`
+export const getStaticPaths: GetStaticPaths = async () => {
+  const url = 'https://jsonplaceholder.typicode.com/users'
   const res = await fetch(url)
   const data = await res.json()
+  const paths = data.map((user: User) => ({
+    params: {id: user.id.toString()}
+  }))
+  
+  return { paths, fallback: false }
+}
 
-  return { user: data[0] }
+export const getStaticProps: GetStaticProps = async ({params}) => {
+  try {
+    const url = 'https://jsonplaceholder.typicode.com/users'
+    const res = await fetch(url)
+    const users = await res.json()
+    const id = params?.id
+    const data = users.find((user:User) => user.id === Number(id))
+    return { props: { data }}
+  } catch (err: any) {
+    return { props: { errors: err.message }}
+  }
 }
