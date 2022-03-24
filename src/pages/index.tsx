@@ -25,6 +25,11 @@ const Home: NextPage = () => {
             <h2>Next Filter &rarr;</h2>
           </a>
         </Link>
+        <Link href='/rickandmorty' passHref>
+          <a className={styles.card}>
+            <h2>Next Search &rarr;</h2>
+          </a>
+        </Link>
       </div>
     </>
   )
