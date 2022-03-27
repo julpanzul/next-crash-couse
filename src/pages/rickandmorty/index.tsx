@@ -1,79 +1,88 @@
-import { GetServerSideProps } from 'next'
+import { GetStaticProps } from 'next'
 import React, { useEffect, useState } from 'react'
+import styles from '../../styles/Home.module.css'
 
 type Character = {
-  id: number
   name: string
   image: string
+  status: string
 }
 
 type DataProps = {
-  data: {
-    info: { next: string }
-    results: Character[]
-  }
+  info: { next: string, prev?: string }
+  results: Character[]
 }
 
-function Index({ data }: DataProps) {
-  const { info, results: defaultResult = [] } = data
-  const [characters, updateCharacters] = useState(defaultResult)
-  const [page, updatePage] = useState({
-    ...info, current: baseURL
-  })
+
+const Index = ({ data }: {data: DataProps}) => {
+  const [characters, setCharacters] = useState(data.results)
+  const [page, setPage] = useState({...data.info, current: defaultURL})
   const { current } = page
-
   useEffect(() => {
-    if(current === baseURL) return
-
+    if(current === defaultURL) return
+    
     async function request() {
       const res = await fetch(current)
-      const data = await res.json()
+      const data: DataProps = await res.json()
 
-      updatePage({
-        current, ...data.info 
-      })
+      if(!data.info?.prev) return
 
-      if( !data.info?.prev ) {
-        updateCharacters(data.results)
-        return
-      }
-
-      updateCharacters(prev => {
-        return [
-          ...prev, ...data.results
-        ]
-      })
-
+      setPage({...data.info, current})
+      setCharacters([...characters, ...data.results])
     }
+    
     request()
   }, [current])
 
   const handleLoadMore = () => {
-    updatePage(prev => {
-      return {
-        ...prev, current: page?.next
-      }
-    })
+    setPage(prev => ({...prev, current: page?.next}))
   }
+  
+  const handleSubmitSearch = (e: React.SyntheticEvent): void => {
+    e.preventDefault()
+
+    const target = e.target as typeof e.target & {
+      query: { value: string }
+    }
+    const value = target.query.value || ''
+
+    // const { currentTarget: {} } = e
+    // const fields = Array.from(currentTarget?.elements)
+    // const fieldQuery = fields.find(field => field.name === 'query')
+
+    // const value = fieldQuery.value || ''
+    const endpoint = `https://rickandmortyapi.com/api/character/?name=${value}`
+
+    setPage(prev => ({...prev, current: endpoint}))
+    console.log(page)
+  }
+  
   return (
-    <>
-      {characters.map((c, i) => (
-        <li key={i}>{c.name}</li>
-      ))}
-      {data.info.next && 
-        <button onClick={handleLoadMore}>Load more</button>
-      }
-    </>
+    <div>
+      <form onSubmit={handleSubmitSearch}>
+        <input name='query' type='search' />
+        <button>Search</button>
+      </form>
+      <ul className={styles.grid}>
+        {characters.map(({name, image}, i) => (
+          <li key={i} className={styles.card}>
+            <h2>{name}</h2>
+            <img src={image} alt={name} />
+          </li>
+        ))}
+      </ul>
+      <button onClick={handleLoadMore}>Load more</button>
+    </div>
   )
 }
 
-const baseURL = 'https://rickandmortyapi.com/api/character'
+export default Index
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(baseURL)
+const defaultURL = 'https://rickandmortyapi.com/api/character'
+
+export const getStaticProps: GetStaticProps = async () => {
+  const res = await fetch(defaultURL)
   const data = await res.json()
-  
+
   return { props: { data }}
 }
-
-export default Index
