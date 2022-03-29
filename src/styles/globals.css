@@ -19,15 +19,3 @@ ul,
 li {
   list-style-type: none;
 }
-
-li span {
-  padding: 0.3em 0.5em;
-  border-radius: 3px;
-  background-color: gray;
-  color: #fff;
-  font-size: 0.5rem;
-}
-
-.success {
-  background-color: forestgreen;
-}
