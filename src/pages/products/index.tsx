@@ -1,40 +1,63 @@
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
-import { GetServerSideProps } from 'next'
+import { GetServerSideProps, GetStaticProps } from 'next'
+import Link from 'next/link'
+import Router, { useRouter } from 'next/router'
+import React, { useEffect, useState } from 'react'
+import Pagination from '../../components/Pagination/Pagination'
 
-type ProductType = {
+type Product = {
   id: number
   name: string
-  price?: number
 }
 
-const list_products : ProductType[] = [
-  { id: 0, name: 'IPhone', price: 1500 },
-  { id: 1, name: 'Macbook', price: 2200 },
-  { id: 2, name: 'AndroidPhone', price: 750 },
-  { id: 3, name: 'AirBuds', price: 350 }
-]
+type DataProps = {
+  info: { next: string }
+  results: Product[]
+}
 
-function Products({data}: {data: ProductType}) {
-  const [search, setSearch] = useState('')
-  console.log(data)
+function Index({ data }: { data: DataProps}) {
+  const [products, setProducts] = useState(data.results)
+  const router = useRouter()
+  const {page} = router.query
+
+  let current = page? +page : 1
+  
+  useEffect(() => {
+    async function request() {
+      const res = await fetch(defaultURL + `?page=${current}`)
+      const data = await res.json()
+      
+      setProducts(data.results)
+    }
+
+    request()
+  }, [page])
+  const handleNextPage = (x: number) => {
+    router.push(`/products?page=${x + 1}`)
+  }
   return (
     <div>
-      <div className="search">
-        <form action={`/products/?name=${search}`} method="POST">
-          <input type="text" placeholder="Search Item" value={search} onChange={(e) => setSearch(e.target.value)}/>
-        </form>
+      <div className="product_list">
+        {products.map((product, i) => (
+          <div key={i}>
+            {product.name}
+          </div>
+        ))}
       </div>
-      <p>Results: <span>...</span></p>
+      <Pagination 
+        count={10}
+        onChange={handleNextPage}
+      />
     </div>
   )
 }
 
-export default Products
+export default Index
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const {name} = ctx.query
-  const data = list_products.find((item) => item.name === name)
-  console.log(list_products)
-  return { props: { data: data || {} }}
+const defaultURL = 'https://rickandmortyapi.com/api/character'
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const res = await fetch(defaultURL)
+  const data = await res.json()
+
+  return { props: { data } }
 }

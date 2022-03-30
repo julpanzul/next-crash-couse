@@ -1,0 +1,13 @@
+.pagination {
+  display: flex;
+}
+
+.pagination li {
+  padding: 0.3em 0.5em;
+  border: 1px solid #212121;
+  border-right: none;
+}
+
+.pagination li:last-child {
+  border-right: 1px solid #212121;
+}
