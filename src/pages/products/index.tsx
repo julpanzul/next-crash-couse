@@ -43,10 +43,6 @@ function Index({ data }: { data: DataProps}) {
           </div>
         ))}
       </div>
-      <Pagination 
-        count={10}
-        onChange={handleNextPage}
-      />
     </div>
   )
 }
@@ -55,8 +51,8 @@ export default Index
 
 const defaultURL = 'https://rickandmortyapi.com/api/character'
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(defaultURL)
+export const getServerSideProps: GetServerSideProps = async ({query}) => {
+  const res = await fetch(defaultURL + `?page=${query.page}`)
   const data = await res.json()
 
   return { props: { data } }
